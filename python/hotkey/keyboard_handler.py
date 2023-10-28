@@ -16,13 +16,13 @@ import keyboard
 import time
 import sys
 
-from enums.predefined_hotkey import PredefinedHotkey
-from python.image import Image
+from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
+from python.image.image import Image
 
 
 class HotkeyHandler:
     """
-    Class responsible for handling all keyboard-related operations.
+    Event handler for all hotkey-related operations.
     """
 
     def __init__(self):

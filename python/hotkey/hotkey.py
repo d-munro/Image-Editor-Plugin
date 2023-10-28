@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from enums.key import Key
+from python.hotkey.enums.key import Key
 
 
 class Hotkey:

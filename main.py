@@ -14,26 +14,11 @@
 
 import os
 import re
-import keyboard
 import json
 import cv2
 
-from python.hotkey_handler import HotkeyHandler
-from enums.predefined_hotkey import PredefinedHotkey
-from python.image import Image
-
-
-def get_all_jpg_file_paths(folder_path: str) -> list:
-    """
-    Returns a list of all JPG files in a folder.
-    """
-    jpg_file_paths = []
-    all_files = os.listdir(folder_path)
-    for file_name in all_files:
-        if not re.findall(".*(\.jpg)$", file_name) is None:
-            file_path = os.path.join(folder_path, file_name)
-            jpg_file_paths.append(file_path)
-    return jpg_file_paths
+from python.driver import Driver
+from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
 
 
 def to_json(edited_images: dict, json_file_path: str):
@@ -94,52 +79,6 @@ def generate_images(image_modifications: dict, new_image_folder_path: str) -> li
     return new_image_file_paths
 
 
-def edit_images(image_folder_path: str, output_json_file_path: str, hex_color: str = "#000000") -> dict:
-    """
-    Provides an interface for editing images and writes the modifications to a JSON file.
-
-    Params:
-        image_folder_path (str): The path to the folder containing the images to be modified.
-        output_json_file_path (str): The path to the JSON file containing all necessary information to modify the images at a future time.
-        hotkey_delay (float, default=0): The amount of seconds to wait before enabling hotkeys again after a hotkey is entered.
-        hex_color (str, default="#000000"): The hexadecimal value for the colour of the rectangles being overlayed on the images.
-
-    Returns:
-        (dict): The modifications to be made to the given images.
-    """
-    hotkey_handler = HotkeyHandler()
-
-    jpg_file_paths = get_all_jpg_file_paths(image_folder_path)
-    if len(jpg_file_paths) == 0:
-        return
-
-    edited_images = []
-    for image_file_path in jpg_file_paths:
-
-        # Regex to remove the file extension and folder path from a string
-        filter_extension_regex = "^.*\\\\(.*)\.[^\.]+$"
-        window_name = re.findall(filter_extension_regex, image_file_path)[0]
-        current_image = Image(image_file_path, window_name, hex_color)
-
-        while True:
-            try:
-                current_image.update()
-                # keyboard_event = keyboard.read_event()
-            #    hotkey_handler.handle_event(keyboard_event)
-            except AttributeError:
-                #    print("error")
-                pass
-
-        current_image_to_rectangle_coordinates["image"] = jpg_file_path
-        current_image_to_rectangle_coordinates["coordinates"] = current_jpg_rectangle_coordinates
-        current_image_to_rectangle_coordinates["rectangle_color"] = hex_color
-        edited_images.append(current_image_to_rectangle_coordinates)
-        cv2.destroyAllWindows()
-
-    to_json(edited_images, json_file_path=output_json_file_path)
-    return edited_images
-
-
 def print_instructions():
     print("Hotkeys")
     print(f"{PredefinedHotkey.NEXT_IMAGE.value}: Move to the next image")
@@ -148,7 +87,9 @@ def print_instructions():
 
 if __name__ == "__main__":
     print_instructions()
-    image_modifications = edit_images("resources\\images",
-                                      "resources\\output.json", hex_color="#550000")
-    new_image_paths = generate_images(
-        image_modifications, "resources\\output_images")
+    driver = Driver("resources\\images",
+                    "resources\\output.json", hex_color="#550000")
+    driver.run()
+
+    # new_image_paths = generate_images(
+    #    image_modifications, "resources\\output_images")

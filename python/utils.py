@@ -12,16 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
-from python.hotkeys.hotkey import Hotkey
-from enums.key import Key
+"""
+A library of various useful utility functions.
+"""
 
 
-class PredefinedHotkey(Enum):
+def hex_to_rgb(hex_code: str) -> tuple:
     """
-    All hotkey bindings for the program.
+    Convert a hexadecimal color to an (R, G, B) tuple.
+
+    Params:
+        hex_code (str): The code to be converted into RGB.
+            For example: #FFFFFF.
+
+    Returns:
+        (tuple): The (R, G, B) colour code of the hexadecimal string.
     """
-    CLOSE_PROGRAM = Hotkey(
-        Key.ESC, 1)  # Terminates the program without saving anything
-    NEXT_IMAGE = Hotkey(Key.D, 0.125)
-    UNDO = Hotkey(Key.CTRL_Z, 0.125)
+    hex_color = hex_code.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
