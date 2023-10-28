@@ -22,8 +22,6 @@ import os
 
 from python.hotkey.keyboard_handler import HotkeyHandler
 from python.image.image_handler import ImageHandler
-from python.image.image import Image
-from python.utils import hex_to_rgb
 
 
 class Driver:
@@ -31,25 +29,19 @@ class Driver:
     Main class to drive backend program functionality.
     """
 
-    def __init__(self, image_folder_path: str, output_json_file_path: str, hex_color: str = "#000000") -> dict:
+    def __init__(self, image_folder_path: str, editing_color: tuple, refresh_rate: int) -> dict:
         """
         Params:
             image_folder_path (str): The path to the folder containing the images to be modified.
-            output_json_file_path (str): The path to the JSON file containing all necessary information to modify the images at a future time.
-            hotkey_delay (float, default=0): The amount of seconds to wait before enabling hotkeys again after a hotkey is entered.
-            hex_color (str, default="#000000"): The hexadecimal value for the colour of the rectangles being overlayed on the images.
+            hex_color (tuple): RGB code of the initial color being used to edit the images.
+            refresh_rate (int): The number of milliseconds to wait before refreshing the images.
 
         Returns:
             (dict): The modifications to be made to the given images.
         """
         self._image_folder_path = image_folder_path
-        self._output_json_file_path = output_json_file_path
-        self._hex_color = hex_to_rgb(hex_color)
-        self._current_image = None
-
-        # Event handlers
         self._hotkey_handler = HotkeyHandler()
-        self._image_handler = ImageHandler()
+        self._image_handler = ImageHandler(editing_color, refresh_rate)
 
     def get_all_jpg_file_paths(self, folder_path: str) -> list:
         """
@@ -67,32 +59,23 @@ class Driver:
         """
         Main loop used to run the program.
         """
-
         jpg_file_paths = self.get_all_jpg_file_paths(self._image_folder_path)
         if len(jpg_file_paths) == 0:
             return
-
         edited_images = []
         for image_file_path in jpg_file_paths:
+            load_next_image = False
+            self._image_handler.load_image(image_file_path)
+            while not load_next_image:
+                load_next_image = self._image_handler.refresh()
 
-            # Regex to remove the file extension and folder path from a string
-            filter_extension_regex = "^.*\\\\(.*)\.[^\.]+$"
-            window_name = re.findall(
-                filter_extension_regex, image_file_path)[0]
-            current_image = Image(
-                image_file_path, window_name, self._hex_color)
-
-            while True:
-                try:
-                    current_image.update()
-                    # keyboard_event = keyboard.read_event()
+                # keyboard_event = keyboard.read_event()
                 #    hotkey_handler.handle_event(keyboard_event)
-                except AttributeError:
-                    #    print("error")
-                    pass
 
-            current_image_to_rectangle_coordinates["image"] = jpg_file_path
-            current_image_to_rectangle_coordinates["coordinates"] = current_jpg_rectangle_coordinates
-            current_image_to_rectangle_coordinates["rectangle_color"] = hex_color
-            edited_images.append(current_image_to_rectangle_coordinates)
-            cv2.destroyAllWindows()
+    def write_images_to_json(self, json_file_path: str):
+        """
+        Writes all relevant information about the images to a JSON file.
+        """
+        all_images = self._image_handler.get_all_images()
+        with open(json_file_path, "w", encoding="utf-8") as f:
+            json.dump(all_images, f, ensure_ascii=False, indent=4)

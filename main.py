@@ -13,20 +13,11 @@
 # limitations under the License.
 
 import os
-import re
-import json
 import cv2
 
 from python.driver import Driver
 from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
-
-
-def to_json(edited_images: dict, json_file_path: str):
-    """
-    Writes the edited images to a JSON file.
-    """
-    with open(json_file_path, "w", encoding="utf-8") as f:
-        json.dump(edited_images, f, ensure_ascii=False, indent=4)
+from python.utils import hex_to_rgb
 
 
 def draw_rectangles_and_save(image_path: str, rectangles: list, rectangle_color: tuple, output_path: str):
@@ -81,14 +72,14 @@ def generate_images(image_modifications: dict, new_image_folder_path: str) -> li
 
 def print_instructions():
     print("Hotkeys")
-    print(f"{PredefinedHotkey.NEXT_IMAGE.value}: Move to the next image")
-    print(f"{PredefinedHotkey.UNDO.value}: Undo your most recent action")
+    print(f"{PredefinedHotkey.NEXT_IMAGE.value.key}: Move to the next image")
+    print(f"{PredefinedHotkey.UNDO.value.key}: Undo your most recent action")
 
 
 if __name__ == "__main__":
     print_instructions()
-    driver = Driver("resources\\images",
-                    "resources\\output.json", hex_color="#550000")
+    color_code = hex_to_rgb("#550000")
+    driver = Driver("resources\\images", color_code, 10)
     driver.run()
 
     # new_image_paths = generate_images(

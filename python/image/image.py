@@ -15,15 +15,11 @@
 import cv2
 
 from python.image.rectangle import Rectangle
-from python.image.timestamp import Timestamp
 
 
 class Image:
     """
-    Contains all relevant information about a given image.
-
-    Properties:
-
+    Creates an image object which stores all current metadata about a given image.
     """
 
     def __init__(self, image_file_path: str, window_name: str, rgb_color_code: tuple):
@@ -36,9 +32,11 @@ class Image:
         self._current_rectangle = Rectangle(rgb_color_code)
         self._all_rectangles = []
 
+        self._original_file_path = image_file_path
         self._current_image = cv2.imread(image_file_path)
         self._window_name = window_name
         self._color = rgb_color_code
+        self._history = []
 
     def _draw_rectangle(self, event, x, y, flags, params):
         """
@@ -66,47 +64,37 @@ class Image:
                 self._current_image, vertex_1, vertex_2, color, -1)
 
             self._all_rectangles.append(self._current_rectangle)
+            self._history.append(self.generate_metadata())
             self._current_rectangle = Rectangle(self._color)
 
-    def append_history(self, timestamp: list):
+    def generate_metadata(self) -> dict:
         """
-        Append an item to the image's history.
-
-        Params:
-            image_timestamp (list): A mapping of the image pixels to be added to the image's history.
-        """
-        self._history.append(timestamp)
-
-    def generate_timestamp(self) -> Timestamp:
-        """
-        Generates a timestamp of all relevant information to the current image to allow for reloading it in the future.
+        Generates a dictionary of the image's metadata which can be used to reload it in the future.
 
         Returns:
-            (Timestamp): All relevant information about the current image.
+            (dict): All relevant information about the current image.
         """
-        timestamp = Timestamp(self._current_image)
-        return timestamp
-        timestamp
-
-        self.append_history(self._current_image.copy())
+        metadata = {}
+        metadata["original_file_path"] = self._original_file_path
+        metadata["window_name"] = self._window_name
+        metadata["image"] = self._current_image
+        if not self._all_rectangles is None:
+            metadata["rectangles"] = [
+                rectangle.to_dict for rectangle in self._all_rectangles]
+        return metadata
 
     def update(self):
         """
         Updates the image which is currently being shown on the screen.
         """
-
-        # Render the image
         cv2.namedWindow(self._window_name)
         cv2.setMouseCallback(self._window_name, self._draw_rectangle)
         cv2.imshow(self._window_name, self._current_image)
-
-        key = cv2.waitKey(10) & 0xFF  # Return ASCII value of integer
 
     def undo(self):
         """
         Undo the most recent edit to the image and delete it from the image's history.
         """
-        self._current_image[:] = self._history.pop()
-        if self._current_rectangle_coordinates:
-            self._current_rectangle_coordinates.pop()
+        self._current_image[:] = self._history.pop()["image"]
+        self._current_rectangle.pop_vertex()
         self.update()

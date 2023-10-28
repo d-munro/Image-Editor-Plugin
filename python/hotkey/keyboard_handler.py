@@ -17,7 +17,6 @@ import time
 import sys
 
 from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
-from python.image.image import Image
 
 
 class HotkeyHandler:
