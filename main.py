@@ -12,61 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cv2
 import os
 import re
 import keyboard
-import time
 import json
+import cv2
 
-from enums.hotkeys import Hotkey
-
-# Lists to store the rectangles and current drawing state
-current_rectangle_points = []
-
-
-def hex_to_rgb(hex_color) -> tuple:
-    """
-    Convert a hexadecimal color to an (R, G, B) tuple.
-    """
-    hex_color = hex_color.lstrip(
-        '#')  # Remove the hash at the start if it's there
-    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-
-
-def draw_rectangle(event, x, y, flags, params: dict):
-    """
-    Draws a rectangle on the given image.
-
-    Params:
-        event: The mouse event.
-        x (int): The x coordinate of the mouse at the time of the event.
-        y (int): The y coordinate of the mouse at the time of the event.
-        params (dict): Any other parameters passed to the function.
-    """
-    current_image = params["image"]
-    all_rectangle_coordinates = params["all_coordinates"]
-    color = params["color"]
-
-    if event == cv2.EVENT_LBUTTONDOWN:
-        # Store the starting point when the left button is pressed
-        current_rectangle_points.append({"x": x, "y": y})
-
-    elif event == cv2.EVENT_LBUTTONUP:
-        # Store the ending point when the left button is released
-        current_rectangle_points.append({"x": x, "y": y})
-        params["image_history"].append(current_image.copy())
-
-        # Draw the rectangle on the image
-        point_1 = (current_rectangle_points[0]
-                   ["x"], current_rectangle_points[0]["y"])
-        point_2 = (current_rectangle_points[1]
-                   ["x"], current_rectangle_points[1]["y"])
-        cv2.rectangle(
-            current_image, point_1, point_2, color, -1)
-        all_rectangle_coordinates.append(
-            (current_rectangle_points[0], current_rectangle_points[1]))
-        current_rectangle_points.clear()
+from python.hotkey_handler import HotkeyHandler
+from enums.predefined_hotkey import PredefinedHotkey
+from python.image import Image
 
 
 def get_all_jpg_file_paths(folder_path: str) -> list:
@@ -140,7 +94,7 @@ def generate_images(image_modifications: dict, new_image_folder_path: str) -> li
     return new_image_file_paths
 
 
-def edit_images(image_folder_path: str, output_json_file_path: str, hotkey_delay: float = 0, hex_color: str = "#000000") -> dict:
+def edit_images(image_folder_path: str, output_json_file_path: str, hex_color: str = "#000000") -> dict:
     """
     Provides an interface for editing images and writes the modifications to a JSON file.
 
@@ -153,45 +107,28 @@ def edit_images(image_folder_path: str, output_json_file_path: str, hotkey_delay
     Returns:
         (dict): The modifications to be made to the given images.
     """
-    color = hex_to_rgb(hex_color)
+    hotkey_handler = HotkeyHandler()
 
     jpg_file_paths = get_all_jpg_file_paths(image_folder_path)
     if len(jpg_file_paths) == 0:
         return
 
     edited_images = []
-    for jpg_file_path in jpg_file_paths:
-        current_image_to_rectangle_coordinates = {}
-        current_jpg_rectangle_coordinates = []
-        original_image = cv2.imread(jpg_file_path)
-        current_image = original_image.copy()
-        image_history = [original_image.copy()]
-        last_hotkey_time = 0
+    for image_file_path in jpg_file_paths:
+
+        # Regex to remove the file extension and folder path from a string
+        filter_extension_regex = "^.*\\\\(.*)\.[^\.]+$"
+        window_name = re.findall(filter_extension_regex, image_file_path)[0]
+        current_image = Image(image_file_path, window_name, hex_color)
 
         while True:
-
-            # Regex to remove the file extension and folder path from a string
-            filter_extension_regex = "^.*\\\\(.*)\.[^\.]+$"
-            window_name = re.findall(filter_extension_regex, jpg_file_path)[0]
-
-            # Render the image
-            cv2.namedWindow(window_name)
-            cv2.setMouseCallback(window_name, draw_rectangle,
-                                 param={"image": current_image, "color": color,
-                                        "all_coordinates": current_jpg_rectangle_coordinates, "image_history": image_history})
-            cv2.imshow(window_name, current_image)
-            key = cv2.waitKey(10) & 0xFF  # Return ASCII value of integer
-
-            # Load the next image
-            if keyboard.is_pressed(Hotkey.NEXT_IMAGE.value) and time.time() - last_hotkey_time > hotkey_delay:
-                break
-
-            # Undo the most recent action
-            elif keyboard.is_pressed(Hotkey.UNDO.value) and time.time() - last_hotkey_time > hotkey_delay:
-                current_image[:] = image_history.pop()
-                if current_jpg_rectangle_coordinates:
-                    current_jpg_rectangle_coordinates.pop()
-                last_hotkey_time = time.time()
+            try:
+                current_image.update()
+                # keyboard_event = keyboard.read_event()
+            #    hotkey_handler.handle_event(keyboard_event)
+            except AttributeError:
+                #    print("error")
+                pass
 
         current_image_to_rectangle_coordinates["image"] = jpg_file_path
         current_image_to_rectangle_coordinates["coordinates"] = current_jpg_rectangle_coordinates
@@ -205,13 +142,13 @@ def edit_images(image_folder_path: str, output_json_file_path: str, hotkey_delay
 
 def print_instructions():
     print("Hotkeys")
-    print(f"{Hotkey.NEXT_IMAGE.value}: Move to the next image")
-    print(f"{Hotkey.UNDO.value}: Undo your most recent action")
+    print(f"{PredefinedHotkey.NEXT_IMAGE.value}: Move to the next image")
+    print(f"{PredefinedHotkey.UNDO.value}: Undo your most recent action")
 
 
 if __name__ == "__main__":
     print_instructions()
     image_modifications = edit_images("resources\\images",
-                                      "resources\\output.json", hex_color="#550000", hotkey_delay=0.125)
+                                      "resources\\output.json", hex_color="#550000")
     new_image_paths = generate_images(
         image_modifications, "resources\\output_images")

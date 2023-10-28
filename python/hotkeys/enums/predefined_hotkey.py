@@ -13,13 +13,15 @@
 # limitations under the License.
 
 from enum import Enum
-from enums.keys import Key
+from python.hotkeys.hotkey import Hotkey
+from enums.key import Key
 
 
-class Hotkey(Enum):
+class PredefinedHotkey(Enum):
     """
     All hotkey bindings for the program.
     """
-    CLOSE_PROGRAM = Key.ESC.value  # Terminates the program without saving anything
-    NEXT_IMAGE = Key.D.value  # Moves to the next image
-    UNDO = Key.CTRL_Z.value  # Undoes the most recent action
+    CLOSE_PROGRAM = Hotkey(
+        Key.ESC, 1)  # Terminates the program without saving anything
+    NEXT_IMAGE = Hotkey(Key.D, 0.125)
+    UNDO = Hotkey(Key.CTRL_Z, 0.125)
