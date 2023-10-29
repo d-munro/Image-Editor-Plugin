@@ -24,4 +24,4 @@ class PredefinedHotkey(Enum):
     CLOSE_PROGRAM = Hotkey(
         Key.ESC, 1)  # Terminates the program without saving anything
     NEXT_IMAGE = Hotkey(Key.D, 0.125)
-    UNDO = Hotkey(Key.CTRL_Z, 0.125)
+    UNDO = Hotkey(Key.Z, 0.125)

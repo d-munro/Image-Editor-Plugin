@@ -17,7 +17,6 @@ import cv2
 
 from python.driver import Driver
 from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
-from python.utils import hex_to_rgb
 
 
 def draw_rectangles_and_save(image_path: str, rectangles: list, rectangle_color: tuple, output_path: str):
@@ -78,8 +77,7 @@ def print_instructions():
 
 if __name__ == "__main__":
     print_instructions()
-    color_code = hex_to_rgb("#550000")
-    driver = Driver("resources\\images", color_code, 10)
+    driver = Driver("resources\\images", "#550000", 10)
     driver.run()
 
     # new_image_paths = generate_images(

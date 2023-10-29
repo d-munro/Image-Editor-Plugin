@@ -57,7 +57,7 @@ class Image:
             self._current_rectangle.add_vertex(x, y)
             vertex_1, vertex_2 = self._current_rectangle.vertices[
                 0], self._current_rectangle.vertices[1]
-            color = self._current_rectangle.color
+            color = self._hex_to_rgb(self._current_rectangle.color)
 
             # Draw the rectangle on the image
             cv2.rectangle(
@@ -80,8 +80,22 @@ class Image:
         metadata["image"] = self._current_image
         if not self._all_rectangles is None:
             metadata["rectangles"] = [
-                rectangle.to_dict for rectangle in self._all_rectangles]
+                rectangle.to_dict() for rectangle in self._all_rectangles]
         return metadata
+
+    def _hex_to_rgb(self, hex_code: str) -> tuple:
+        """
+        Convert a hexadecimal color to an R, G, B) tuple.
+
+        Params:
+            hex_code (str): The code to be converted into RGB.
+                For example: #FFFFFF.
+
+        Returns:
+            (tuple): The (R, G, B) colour code of the hexadecimal string.
+        """
+        hex_color = hex_code.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
     def update(self):
         """
@@ -94,7 +108,11 @@ class Image:
     def undo(self):
         """
         Undo the most recent edit to the image and delete it from the image's history.
+
+        Raises:
+            (UserWarning): If the most recent action could not be undone.
         """
+        if len(self._history) == 0:
+            raise UserWarning("Image history was already empty")
         self._current_image[:] = self._history.pop()["image"]
-        self._current_rectangle.pop_vertex()
         self.update()

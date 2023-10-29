@@ -12,22 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Module responsible for modifying and updating on-screen images.
+"""
+
 import re
 import cv2
 
 from python.image.image import Image
-from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
 
 
-class ImageHandler:
+class ImageEditor:
     """
-    Event handler responsible for performing all image-related actions.
+    Modifies and updates on-screen images.
     """
 
-    def __init__(self, editing_color: tuple, refresh_rate: int):
+    def __init__(self, editing_color: str, refresh_rate: int):
         """
         Params:
-            editing_color (tuple): RGB color code of the initial colour being used to edit the images.
+            editing_color (str): Hexadecimal value of the colour currently being used to modify the on-screen image.
             refresh_rate (int): The number of miliseconds to wait before refreshing the current image.
         """
         self._current_image = None
@@ -51,22 +54,21 @@ class ImageHandler:
         self._current_image = Image(
             image_file_path, window_name, self._color)
 
-    def refresh(self) -> bool:
+    def undo(self):
         """
-        Refreshes the image.
+        Undoes the most recent action.
+        
+        Raises:
+            (UserWarning): If there was nothing to undo.
+        """
+        try:
+            self._current_image.undo()
+        except UserWarning as e:
+            raise e
 
-        Returns:
-            (bool): True if the next image should be loaded, False otherwise.
+    def refresh(self):
+        """
+        Refreshes the active window.
         """
         self._current_image.update()
         cv2.waitKey(self._refresh_rate)
-        key = "test"
-        if key == PredefinedHotkey.NEXT_IMAGE:
-            print("read")
-            # current_image_to_rectangle_coordinates["image"] = jpg_file_path
-            # current_image_to_rectangle_coordinates["coordinates"] = current_jpg_rectangle_coordinates
-            # current_image_to_rectangle_coordinates["rectangle_color"] = hex_color
-            # edited_images.append(current_image_to_rectangle_coordinates)
-            # cv2.destroyAllWindows()
-            return True
-        return False
