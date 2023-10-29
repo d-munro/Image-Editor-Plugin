@@ -18,8 +18,9 @@ Main module responsible for driving all backend activity for the program.
 
 import re
 import os
-import sys
 import queue
+import sys
+import traceback
 
 from python.hotkey.hotkey_listener import HotkeyListener
 from python.image.image_editor import ImageEditor
@@ -32,15 +33,19 @@ class Driver:
     Main class to drive backend program functionality.
     """
 
-    def __init__(self, image_folder_path: str, editing_color: str, refresh_rate: int) -> dict:
+    def __init__(self, image_folder_path: str, editing_color: str, refresh_rate: int, output_folder_path: str) -> dict:
         """
         Params:
             image_folder_path (str): The path to the folder containing the images to be modified.
             editing_color (str): Hexadecimal value of the color being used to modify the image.
             refresh_rate (int): Refresh rate of on-screen images.
+            output_folder_path (str): The path to the folder where all outputs should be saved.
         """
         self._image_folder_path = image_folder_path
         self._image_editor = ImageEditor(editing_color, refresh_rate)
+        if not os.path.exists(output_folder_path):
+            os.mkdir(output_folder_path)
+        self._output_folder_path = output_folder_path
 
         self._hotkey_queue = queue.Queue()
         self._hotkey_listener_thread = HotkeyListener(self._hotkey_queue)
@@ -67,15 +72,32 @@ class Driver:
         """
         try:
             if hotkey.key == PredefinedHotkey.NEXT_IMAGE.value.key:
+                self._image_editor.save_current_image(self._output_folder_path)
                 self._image_editor.close_current_image()
             elif hotkey.key == PredefinedHotkey.CLOSE_PROGRAM.value.key:
-                print(f"Hotkey \"{hotkey.key.value}\" detected")
-                print("Terminating program")
-                sys.exit(0)
+                self.shutdown(
+                    message=f"Detected key {hotkey.key.name} - Terminating program")
             elif hotkey.key == PredefinedHotkey.UNDO.value.key:
                 self._image_editor.undo()
         except UserWarning as e:
             raise e
+
+    def shutdown(self, message: str = None, exception: Exception = None):
+        """
+        Performs all necessary actions to safely shutdown the program.
+
+        Params:
+            message (str, default=None): A message to be outputted to the user upon shutdown.
+            exception (Exception, default=None): The exception which caused the program to shutdown.
+        """
+        if not message is None:
+            print(message)
+        if not exception is None:
+            traceback.print_exception(exception)
+        self._image_editor.close()
+        self._hotkey_listener_thread.stop()
+        self._hotkey_listener_thread.join()
+        sys.exit()
 
     def run(self):
         """
@@ -101,4 +123,9 @@ class Driver:
                         pass
                     except UserWarning as e:
                         print(e)
-        self._hotkey_listener_thread.stop()
+                    except Exception as e:
+                        self.shutdown(
+                            message="Unexpected exception occured - Terminating program\n\n", exception=e)
+
+        shutdown_message = f"\nFinished editing all images\nAll images have been written to {self._output_folder_path}"
+        self.shutdown(shutdown_message)

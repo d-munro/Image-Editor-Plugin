@@ -77,6 +77,20 @@ class ImageEditor:
         self._current_image.load_image_from_jpg_file(
             image_file_path, window_name)
 
+    def save_current_image(self, folder_path: str, file_name: str = None) -> str:
+        """
+        Saves the current image to the specified folder.
+
+        Params:
+            folder_path (str): The path to the folder where the image should be saved.
+            custom_file_name (str, default=None): The name of the file that the image should be saved as.
+                If None, the image will have the same file name as the image originally loaded into the image editor.
+
+        Returns:
+            (str): The path to the file where the image has been saved.
+        """
+        return self.save_image(self._current_image, folder_path, file_name=file_name)
+
     def save_image(self, image: Image, folder_path: str, file_name: str = None) -> str:
         """
         Saves an image to a JPG file.
@@ -88,7 +102,7 @@ class ImageEditor:
                 If None, the file name will be the original file name specified in the image's metadata.
 
         Returns:
-            (str): The path to the file where the image is being saved.
+            (str): The path to the file where the image has been saved.
         """
         # Create the directory if required
         if not os.path.exists(folder_path):
@@ -103,21 +117,21 @@ class ImageEditor:
         image.save_as_jpg(new_image_path)
         return new_image_path
 
-    def close_current_image(self, save_folder_path: str = None, file_name: str = None):
+    def close_current_image(self):
         """
-        Closes the current image and saves it if requested.
-
-        Params:
-            save_folder_path (str, default=None): The path to the folder where the image should be saved.
-                If None, the image will not be saved to a folder.
-            file_name (str, default=None): The name of the file being used to save the image.
-                If None, the file name will be the same as the original image.
+        Safely closes the image currently loaded into the image editor.
         """
+        if self._current_image is None:
+            return
         self._all_modified_images.append(self._current_image)
-        if not save_folder_path is None:
-            self.save_image(self._current_image, save_folder_path, file_name)
         self._current_image.close()
         self._current_image = None
+
+    def close(self):
+        """
+        Performs all operations to safely close the image editor.
+        """
+        self.close_current_image()
 
     def undo(self):
         """

@@ -20,13 +20,10 @@ def print_instructions():
     print("Hotkeys")
     print(f"{PredefinedHotkey.NEXT_IMAGE.value.key.name}: Move to the next image")
     print(f"{PredefinedHotkey.UNDO.value.key.name}: Undo your most recent action")
-    print(f"{PredefinedHotkey.CLOSE_PROGRAM.value.key.name}: Immediately terminate the program (without saving)")
+    print(f"{PredefinedHotkey.CLOSE_PROGRAM.value.key.name}: Terminate the program")
 
 
 if __name__ == "__main__":
     print_instructions()
-    driver = Driver("resources\\images", "#550000", 10)
+    driver = Driver("resources/images", "#550000", 10, "resources/output")
     driver.run()
-
-    # new_image_paths = generate_images(
-    #    image_modifications, "resources\\output_images")

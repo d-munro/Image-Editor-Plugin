@@ -158,7 +158,7 @@ class Image:
         """
         Saves the current image to a jpg file.
         """
-        cv2.imwrite(self._current_image, jpg_file_path)
+        cv2.imwrite(jpg_file_path, self._current_image)
 
     def update(self):
         """
