@@ -43,7 +43,7 @@ class HotkeyListener(threading.Thread):
         """
         keys_to_hotkeys = dict()
         for key in PredefinedHotkey:
-            keys_to_hotkeys[key.value.key] = key.value
+            keys_to_hotkeys[key.value.key.value] = key.value
         return keys_to_hotkeys
 
     def run(self):

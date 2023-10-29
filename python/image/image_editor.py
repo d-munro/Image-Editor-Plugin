@@ -48,6 +48,8 @@ class ImageEditor:
         # Regex to remove the file extension and folder path from a string
         filter_extension_regex = "^.*\\\\(.*)\.[^\.]+$"
 
+        if not self._current_image is None:
+            self._current_image.close()
         window_name = re.findall(
             filter_extension_regex, image_file_path)[0]
         self._current_image = Image(

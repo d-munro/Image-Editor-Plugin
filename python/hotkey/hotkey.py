@@ -22,14 +22,14 @@ class Hotkey:
     """
 
     def __init__(self, key: Key, delay: float):
-        self._key = key.value
+        self._key = key
         self._delay = delay
         self._most_recent_trigger = 0
 
     @property
-    def key(self) -> str:
+    def key(self) -> Key:
         """
-        The unique character typed to trigger the hotkey.
+        The unique key to trigger the hotkey.
         """
         return self._key
 

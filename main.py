@@ -71,8 +71,9 @@ def generate_images(image_modifications: dict, new_image_folder_path: str) -> li
 
 def print_instructions():
     print("Hotkeys")
-    print(f"{PredefinedHotkey.NEXT_IMAGE.value.key}: Move to the next image")
-    print(f"{PredefinedHotkey.UNDO.value.key}: Undo your most recent action")
+    print(f"{PredefinedHotkey.NEXT_IMAGE.value.key.name}: Move to the next image")
+    print(f"{PredefinedHotkey.UNDO.value.key.name}: Undo your most recent action")
+    print(f"{PredefinedHotkey.CLOSE_PROGRAM.value.key.name}: Immediately terminate the program (without saving)")
 
 
 if __name__ == "__main__":

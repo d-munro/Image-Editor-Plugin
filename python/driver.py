@@ -70,7 +70,7 @@ class Driver:
             if hotkey.key == PredefinedHotkey.NEXT_IMAGE.value.key:
                 return
             elif hotkey.key == PredefinedHotkey.CLOSE_PROGRAM.value.key:
-                print(f"Hotkey \"{hotkey.value}\" detected")
+                print(f"Hotkey \"{hotkey.key.value}\" detected")
                 print("Terminating program")
                 sys.exit(0)
             elif hotkey.key == PredefinedHotkey.UNDO.value.key:
@@ -89,7 +89,7 @@ class Driver:
         for image_file_path in jpg_file_paths:
             self._image_editor.load_image(image_file_path)
             current_hotkey = None
-            while current_hotkey is None or current_hotkey != PredefinedHotkey.NEXT_IMAGE:
+            while current_hotkey is None or current_hotkey.key != PredefinedHotkey.NEXT_IMAGE.value.key:
                 if not self._hotkey_queue.empty():
                     try:
                         current_hotkey = self._hotkey_queue.get()

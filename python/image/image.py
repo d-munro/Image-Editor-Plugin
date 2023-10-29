@@ -41,6 +41,12 @@ class Image:
         self._refresh_rate = refresh_rate
         self._history = []
 
+    def close(self):
+        """
+        Closes the image.
+        """
+        cv2.destroyWindow(self._window_name)
+
     def _draw_rectangle(self, event, x, y, flags, params):
         """
         Function passed to cv2's setMouseCallBack function to draw rectangles on the current image.

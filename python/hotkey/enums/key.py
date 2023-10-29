@@ -51,4 +51,4 @@ class Key(Enum):
 
     # Miscellaneous keys
     ENTER = "enter"
-    ESC = 27
+    ESC = "esc"
