@@ -15,6 +15,7 @@
 import keyboard
 from queue import Queue
 import threading
+import time
 
 from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
 
@@ -34,7 +35,6 @@ class HotkeyListener(threading.Thread):
         self._stop_event = threading.Event()
 
         self._keys_to_hotkeys = self._generate_hotkeys()
-        self._hotkeys_to_delays = self._generate_hotkeys_to_delays()
 
     def _generate_hotkeys(self):
         """
@@ -43,18 +43,8 @@ class HotkeyListener(threading.Thread):
         """
         keys_to_hotkeys = dict()
         for key in PredefinedHotkey:
-            keys_to_hotkeys[key.value.key] = key
+            keys_to_hotkeys[key.value.key] = key.value
         return keys_to_hotkeys
-
-    def _generate_hotkeys_to_delays(self) -> dict:
-        """
-        Returns:
-            (dict): Dictionary mapping each predefined hotkey to its associated delay.
-        """
-        hotkeys_to_delays = {}
-        for entry in PredefinedHotkey:
-            hotkeys_to_delays[entry.value.key] = entry.value.delay
-        return hotkeys_to_delays
 
     def run(self):
         """
@@ -64,7 +54,13 @@ class HotkeyListener(threading.Thread):
             keyboard_event = keyboard.read_event()
             key = keyboard_event.name
             if key in self._keys_to_hotkeys:
-                self._hotkey_queue.put(self._keys_to_hotkeys.get(key))
+
+                # Check if a sufficient delay has occured since the hotkey was last pressed.
+                hotkey = self._keys_to_hotkeys.get(key)
+                current_time = time.time()
+                if current_time - hotkey.most_recent_trigger > hotkey.delay:
+                    self._hotkey_queue.put(self._keys_to_hotkeys.get(key))
+                    hotkey.most_recent_trigger = current_time
 
     def stop(self):
         """

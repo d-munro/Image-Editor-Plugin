@@ -70,6 +70,11 @@ class Rectangle:
             (dict): Dictionary representation of the rectangle's metadata.
         """
         metadata = {}
-        metadata["vertices"] = self._vertices
+        vertices_dict = []
+        for vertex in self._vertices:
+            vertex_dict = {}
+            vertex_dict["x"], vertex_dict["y"] = vertex
+            vertices_dict.append(vertex_dict)
+        metadata["vertices"] = vertices_dict
         metadata["color"] = self._color
         return metadata

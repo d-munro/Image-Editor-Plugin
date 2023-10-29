@@ -22,12 +22,13 @@ class Image:
     Creates an image object which stores all current metadata about a given image.
     """
 
-    def __init__(self, image_file_path: str, window_name: str, rgb_color_code: tuple):
+    def __init__(self, image_file_path: str, window_name: str, rgb_color_code: tuple, refresh_rate: int):
         """
         Params:
             image_file_path (str): The path to the image which the user is modifying.
             window_name (str): The title to be given to the window where users modify the image.
             rgb_color_code (tuple): The color code of all modifications being made to the image.
+            refresh_rate (int): The number of milliseconds to wait before refreshing the image.
         """
         self._current_rectangle = Rectangle(rgb_color_code)
         self._all_rectangles = []
@@ -36,6 +37,7 @@ class Image:
         self._current_image = cv2.imread(image_file_path)
         self._window_name = window_name
         self._color = rgb_color_code
+        self._refresh_rate = refresh_rate
         self._history = []
 
     def _draw_rectangle(self, event, x, y, flags, params):
@@ -83,6 +85,39 @@ class Image:
                 rectangle.to_dict() for rectangle in self._all_rectangles]
         return metadata
 
+    def _load_rectangles(self, metadata) -> list:
+        """
+        Loads all rectangles from the image metadata into the program.
+        """
+        all_rectangles = []
+        rectangle_list = metadata["rectangles"]
+        if not rectangle_list is None:
+            for rectangle in rectangle_list:
+                color = rectangle["color"]
+                generated_rectangle = Rectangle(color)
+                vertices = rectangle["vertices"]
+                for vertex in vertices:
+                    generated_rectangle.add_vertex(vertex["x"], vertex["y"])
+                all_rectangles.append(generated_rectangle)
+        return all_rectangles
+
+    def load_metadata(self, metadata: dict):
+        """
+        Loads an image based on the given metadata.
+
+        Params:
+            metadata (dict): Metadata describing the image. It should have the following keys:
+                1) original_file_path: The path to the original file containing the image, before any modifications.
+                2) window_name: The title of the window where the image will be displayed.
+                3) image: The array of RGB values for all pixels in the image.
+                4) rectangles (optional): The coordinates of any rectangles which have been overlayed onto the image.
+        """
+        self._original_file_path = metadata["original_file_path"]
+        self._window_name = metadata["window_name"]
+        self._image = metadata["image"]
+        self._all_rectangles = self._load_rectangles(metadata)
+        self.update()
+
     def _hex_to_rgb(self, hex_code: str) -> tuple:
         """
         Convert a hexadecimal color to an R, G, B) tuple.
@@ -104,6 +139,7 @@ class Image:
         cv2.namedWindow(self._window_name)
         cv2.setMouseCallback(self._window_name, self._draw_rectangle)
         cv2.imshow(self._window_name, self._current_image)
+        cv2.waitKey(self._refresh_rate)
 
     def undo(self):
         """
@@ -114,5 +150,5 @@ class Image:
         """
         if len(self._history) == 0:
             raise UserWarning("Image history was already empty")
-        self._current_image[:] = self._history.pop()["image"]
-        self.update()
+        metadata = self._history.pop()
+        self.load_metadata(metadata)

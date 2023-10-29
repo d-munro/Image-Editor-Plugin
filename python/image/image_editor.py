@@ -17,7 +17,6 @@ Module responsible for modifying and updating on-screen images.
 """
 
 import re
-import cv2
 
 from python.image.image import Image
 
@@ -52,12 +51,12 @@ class ImageEditor:
         window_name = re.findall(
             filter_extension_regex, image_file_path)[0]
         self._current_image = Image(
-            image_file_path, window_name, self._color)
+            image_file_path, window_name, self._color, self._refresh_rate)
 
     def undo(self):
         """
         Undoes the most recent action.
-        
+
         Raises:
             (UserWarning): If there was nothing to undo.
         """
@@ -71,4 +70,3 @@ class ImageEditor:
         Refreshes the active window.
         """
         self._current_image.update()
-        cv2.waitKey(self._refresh_rate)

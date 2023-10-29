@@ -25,6 +25,7 @@ import queue
 from python.hotkey.hotkey_listener import HotkeyListener
 from python.image.image_editor import ImageEditor
 from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
+from python.hotkey.hotkey import Hotkey
 
 
 class Driver:
@@ -58,7 +59,7 @@ class Driver:
                 jpg_file_paths.append(file_path)
         return jpg_file_paths
 
-    def _execute_hotkey(self, hotkey: PredefinedHotkey):
+    def _execute_hotkey(self, hotkey: Hotkey):
         """
         Executes the desired functionality of a given hotkey.
 
@@ -66,13 +67,13 @@ class Driver:
             (UserWarning): If an unexpected event occured.
         """
         try:
-            if hotkey == PredefinedHotkey.NEXT_IMAGE:
+            if hotkey.key == PredefinedHotkey.NEXT_IMAGE.value.key:
                 return
-            elif hotkey == PredefinedHotkey.CLOSE_PROGRAM:
+            elif hotkey.key == PredefinedHotkey.CLOSE_PROGRAM.value.key:
                 print(f"Hotkey \"{hotkey.value}\" detected")
                 print("Terminating program")
                 sys.exit(0)
-            elif hotkey == PredefinedHotkey.UNDO:
+            elif hotkey.key == PredefinedHotkey.UNDO.value.key:
                 self._image_editor.undo()
         except UserWarning as e:
             raise e
