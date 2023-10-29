@@ -34,7 +34,8 @@ class Image:
         self._all_rectangles = []
 
         self._original_file_path = image_file_path
-        self._current_image = cv2.imread(image_file_path)
+        self._original_image = cv2.imread(image_file_path)
+        self._current_image = self._original_image.copy()
         self._window_name = window_name
         self._color = rgb_color_code
         self._refresh_rate = refresh_rate
@@ -56,17 +57,20 @@ class Image:
 
         # Store the ending point when the left button is released
         elif event == cv2.EVENT_LBUTTONUP:
+
             self._current_rectangle.add_vertex(x, y)
             vertex_1, vertex_2 = self._current_rectangle.vertices[
                 0], self._current_rectangle.vertices[1]
             color = self._hex_to_rgb(self._current_rectangle.color)
+
+            # Must save the image before updating it with the new rectangle in case of undoing the action
+            self._history.append(self.generate_metadata())
 
             # Draw the rectangle on the image
             cv2.rectangle(
                 self._current_image, vertex_1, vertex_2, color, -1)
 
             self._all_rectangles.append(self._current_rectangle)
-            self._history.append(self.generate_metadata())
             self._current_rectangle = Rectangle(self._color)
 
     def generate_metadata(self) -> dict:
@@ -79,7 +83,7 @@ class Image:
         metadata = {}
         metadata["original_file_path"] = self._original_file_path
         metadata["window_name"] = self._window_name
-        metadata["image"] = self._current_image
+        metadata["image"] = self._current_image.copy()
         if not self._all_rectangles is None:
             metadata["rectangles"] = [
                 rectangle.to_dict() for rectangle in self._all_rectangles]
@@ -114,7 +118,7 @@ class Image:
         """
         self._original_file_path = metadata["original_file_path"]
         self._window_name = metadata["window_name"]
-        self._image = metadata["image"]
+        self._current_image = metadata["image"]
         self._all_rectangles = self._load_rectangles(metadata)
         self.update()
 
