@@ -17,7 +17,6 @@ Main module responsible for driving all backend activity for the program.
 """
 
 import re
-import json
 import os
 import sys
 import queue
@@ -68,7 +67,7 @@ class Driver:
         """
         try:
             if hotkey.key == PredefinedHotkey.NEXT_IMAGE.value.key:
-                return
+                self._image_editor.close_current_image()
             elif hotkey.key == PredefinedHotkey.CLOSE_PROGRAM.value.key:
                 print(f"Hotkey \"{hotkey.key.value}\" detected")
                 print("Terminating program")
@@ -87,9 +86,13 @@ class Driver:
             return
         self._hotkey_listener_thread.start()
         for image_file_path in jpg_file_paths:
-            self._image_editor.load_image(image_file_path)
+            self._image_editor.load_image_from_jpg(image_file_path)
             current_hotkey = None
             while current_hotkey is None or current_hotkey.key != PredefinedHotkey.NEXT_IMAGE.value.key:
+
+                # Must refresh the image before parsing the hotkey in case the hotkey indicates to close the image
+                self._image_editor.refresh()
+
                 if not self._hotkey_queue.empty():
                     try:
                         current_hotkey = self._hotkey_queue.get()
@@ -98,13 +101,4 @@ class Driver:
                         pass
                     except UserWarning as e:
                         print(e)
-                self._image_editor.refresh()
         self._hotkey_listener_thread.stop()
-
-    def write_images_to_json(self, json_file_path: str):
-        """
-        Writes all relevant information about the images to a JSON file.
-        """
-        all_images = self._image_editor.get_all_images()
-        with open(json_file_path, "w", encoding="utf-8") as f:
-            json.dump(all_images, f, ensure_ascii=False, indent=4)

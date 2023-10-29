@@ -15,31 +15,30 @@
 import cv2
 
 from python.image.rectangle import Rectangle
+from python.image.exceptions import ImageException
 
 
 class Image:
     """
-    Creates an image object which stores all current metadata about a given image.
+    Stores all metadata about an existing image.
     """
 
-    def __init__(self, image_file_path: str, window_name: str, rgb_color_code: tuple, refresh_rate: int):
+    def __init__(self, hex_color_code: str, refresh_rate: int):
         """
         Params:
-            image_file_path (str): The path to the image which the user is modifying.
-            window_name (str): The title to be given to the window where users modify the image.
-            rgb_color_code (tuple): The color code of all modifications being made to the image.
             refresh_rate (int): The number of milliseconds to wait before refreshing the image.
+            hex_color_code (str): The color being used to modify the image.
         """
-        self._current_rectangle = Rectangle(rgb_color_code)
-        self._all_rectangles = []
-
-        self._original_file_path = image_file_path
-        self._original_image = cv2.imread(image_file_path)
-        self._current_image = self._original_image.copy()
-        self._window_name = window_name
-        self._color = rgb_color_code
         self._refresh_rate = refresh_rate
+        self._current_rectangle = Rectangle(hex_color_code)
+        self._all_rectangles = []
         self._history = []
+        self._color = hex_color_code
+        self._is_generated = False
+
+        self._original_file_path = None
+        self._current_image = None
+        self._window_name = None
 
     def close(self):
         """
@@ -111,9 +110,22 @@ class Image:
                 all_rectangles.append(generated_rectangle)
         return all_rectangles
 
-    def load_metadata(self, metadata: dict):
+    def load_image_from_jpg_file(self, jpg_file_path: str, window_name: str):
         """
-        Loads an image based on the given metadata.
+        Loads an imge from a JPG file.
+
+        Params:
+            jpg_file_path (str): The path to the image which the user is modifying.
+            window_name (str): The title to be given to the window where users modify the image.
+        """
+        self._original_file_path = jpg_file_path
+        self._current_image = cv2.imread(jpg_file_path)
+        self._window_name = window_name
+        self._is_generated = True
+
+    def load_image_from_metadata(self, metadata: dict):
+        """
+        Loads an image from previously generated image metadata.
 
         Params:
             metadata (dict): Metadata describing the image. It should have the following keys:
@@ -126,7 +138,7 @@ class Image:
         self._window_name = metadata["window_name"]
         self._current_image = metadata["image"]
         self._all_rectangles = self._load_rectangles(metadata)
-        self.update()
+        self._is_generated = True
 
     def _hex_to_rgb(self, hex_code: str) -> tuple:
         """
@@ -142,10 +154,22 @@ class Image:
         hex_color = hex_code.lstrip('#')
         return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
+    def save_as_jpg(self, jpg_file_path: str):
+        """
+        Saves the current image to a jpg file.
+        """
+        cv2.imwrite(self._current_image, jpg_file_path)
+
     def update(self):
         """
         Updates the image which is currently being shown on the screen.
+
+        Raises:
+            (ImageException): If the image has not been generated yet.
         """
+        if not self._is_generated:
+            raise ImageException(
+                "The image has not yet been loaded from a file or metadata")
         cv2.namedWindow(self._window_name)
         cv2.setMouseCallback(self._window_name, self._draw_rectangle)
         cv2.imshow(self._window_name, self._current_image)
@@ -161,4 +185,4 @@ class Image:
         if len(self._history) == 0:
             raise UserWarning("Image history was already empty")
         metadata = self._history.pop()
-        self.load_metadata(metadata)
+        self.load_image_from_metadata(metadata)

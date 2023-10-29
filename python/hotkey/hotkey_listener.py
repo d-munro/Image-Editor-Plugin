@@ -33,7 +33,6 @@ class HotkeyListener(threading.Thread):
         super().__init__()
         self._hotkey_queue = hotkey_queue
         self._stop_event = threading.Event()
-
         self._keys_to_hotkeys = self._generate_hotkeys()
 
     def _generate_hotkeys(self):
@@ -54,10 +53,10 @@ class HotkeyListener(threading.Thread):
             keyboard_event = keyboard.read_event()
             key = keyboard_event.name
             if key in self._keys_to_hotkeys:
-
-                # Check if a sufficient delay has occured since the hotkey was last pressed.
                 hotkey = self._keys_to_hotkeys.get(key)
                 current_time = time.time()
+
+                # Check if a sufficient delay has occured since the hotkey was last pressed.
                 if current_time - hotkey.most_recent_trigger > hotkey.delay:
                     self._hotkey_queue.put(self._keys_to_hotkeys.get(key))
                     hotkey.most_recent_trigger = current_time

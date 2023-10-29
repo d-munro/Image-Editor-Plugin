@@ -13,5 +13,18 @@
 # limitations under the License.
 
 """
-Package responsible for detecting hotkey-related inputs.
+Module containing all exceptions for the image package.
 """
+
+
+class ImageException(Exception):
+    """
+    Indicates an issue while trying to perform an action on an image.
+    """
+
+    def __init__(self, message: str):
+        """
+        Params:
+            message (str): The message describing the exception.
+        """
+        super().__init__(message)
