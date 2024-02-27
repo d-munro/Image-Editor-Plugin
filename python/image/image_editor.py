@@ -18,6 +18,7 @@ Module responsible for modifying and updating on-screen images.
 
 import re
 import os
+import json
 
 from python.image.image import Image
 from python.image.exceptions import ImageException
@@ -116,6 +117,24 @@ class ImageEditor:
         new_image_path = os.path.join(folder_path, file_name)
         image.save_as_jpg(new_image_path)
         return new_image_path
+
+    def save_all_image_metadata(self, folder_path: str, json_file_name: str = "metadata.json") -> str:
+        """
+        Saves all image metadata to a JSON file.
+
+        Params:
+            folder_path (str): The folder where the metadata should be saved.
+            json_file_name (str, default="metadata.json"): The name of the JSON file storing the image metadata.
+
+        Returns:
+            (str): The path to the JSON file where the metadata was saved.
+        """
+        all_metadata = [image.generate_metadata()
+                        for image in self._all_modified_images]
+        file_path = os.path.join(folder_path, json_file_name)
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(all_metadata, f, ensure_ascii=False, indent=4)
+        return file_path
 
     def close_current_image(self):
         """

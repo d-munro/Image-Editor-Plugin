@@ -94,6 +94,7 @@ class Driver:
             print(message)
         if not exception is None:
             traceback.print_exception(exception)
+        # self._image_editor.save_all_image_metadata(self._output_folder_path)
         self._image_editor.close()
         self._hotkey_listener_thread.stop()
         self._hotkey_listener_thread.join()

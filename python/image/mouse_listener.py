@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from python.driver import Driver
-from python.hotkey.enums.predefined_hotkey import PredefinedHotkey
+"""
+Listens for any user mouse movements.
+"""
 
-def print_instructions():
-    print("Hotkeys")
-    print(f"{PredefinedHotkey.NEXT_IMAGE.value.key.name}: Move to the next image")
-    print(f"{PredefinedHotkey.UNDO.value.key.name}: Undo your most recent action")
-    print(f"{PredefinedHotkey.CLOSE_PROGRAM.value.key.name}: Terminate the program")
+import threading
 
 
-if __name__ == "__main__":
-    print_instructions()
-    driver = Driver("resources/images", "#550000", 10, "resources/output")
-    driver.run()
+class MouseListener(threading.Thread):
+
+    def __init__(self):
+        super().__init__()
+        self._stop_event = threading.Event()
+        self._stop_event = self._stop_event.set()

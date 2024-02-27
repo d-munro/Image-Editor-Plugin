@@ -78,9 +78,14 @@ class Image:
             self._all_rectangles.append(self._current_rectangle)
             self._current_rectangle = Rectangle(self._color)
 
+    def _generate_timestamp(self) -> dict:
+        """
+        Creates a timestamp of the image's current array of pixels and metadata.
+        """
+
     def generate_metadata(self) -> dict:
         """
-        Generates a dictionary of the image's metadata which can be used to reload it in the future.
+        Generates a dictionary of the image's metadata which can be used to regenerate it in the future.
 
         Returns:
             (dict): All relevant information about the current image.
@@ -112,7 +117,7 @@ class Image:
 
     def load_image_from_jpg_file(self, jpg_file_path: str, window_name: str):
         """
-        Loads an imge from a JPG file.
+        Loads an image from a JPG file.
 
         Params:
             jpg_file_path (str): The path to the image which the user is modifying.
@@ -136,13 +141,13 @@ class Image:
         """
         self._original_file_path = metadata["original_file_path"]
         self._window_name = metadata["window_name"]
-        self._current_image = metadata["image"]
+        # self._current_image = metadata["image"]
         self._all_rectangles = self._load_rectangles(metadata)
         self._is_generated = True
 
     def _hex_to_rgb(self, hex_code: str) -> tuple:
         """
-        Convert a hexadecimal color to an R, G, B) tuple.
+        Convert a hexadecimal color to an RGB tuple.
 
         Params:
             hex_code (str): The code to be converted into RGB.
